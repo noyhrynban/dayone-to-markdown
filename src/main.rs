@@ -1,3 +1,7 @@
+mod entry;
+
+use chrono::Datelike;
+use entry::Entry;
 use rayon::prelude::*;
 use serde::Deserialize;
 use std::{
@@ -6,19 +10,11 @@ use std::{
     process::exit,
 };
 
-#[allow(non_snake_case)]
-#[derive(Deserialize)]
-struct Entry {
-    text: String,
-    creationDate: String,
-    timeZone: Option<String>,
-}
-
 #[derive(Deserialize)]
 struct Journal {
     entries: Vec<Entry>,
     // TODO: add audios. (Assume .m4a)
-    // TODO: add photos. (Assume .jpeg ???)
+    // TODO: add photos. (Assume .jpeg)
 }
 
 fn main() {
@@ -51,26 +47,19 @@ fn main() {
     let new_journal_dir = Path::new("new_journal");
 
     journal.entries.par_iter().for_each(|entry| { // It is probably overkill to use Rayon 😛
+        let text: String = entry.text();
+        let local_datetime = entry.local_datetime();
 
-        fs::create_dir_all(
+        match fs::create_dir_all(
             new_journal_dir
                 .join(format!("{}", local_datetime.year()))
                 .join(format!("{:02}", local_datetime.month()))
                 .join(format!("{:02}", local_datetime.day())),
-        );
-    }
-}
-
-fn cleanup(string: String) -> String {
-    string
-        .replace(r"\.", ".")
-        .replace(r"\(", "(")
-        .replace(r"\)", ")")
-        .replace(r"\!", "!")
-        .replace(r"\-", "-")
-        .replace(r"\+", "+")
-        .replace(r"\[", "[")
-        .replace(r"\]", "]")
+        ) {
+            Ok(_) => {}
+            Err(e) => panic!("{e}"),
+        }
+    });
 }
 
 // TODO: If multiple entries on same day, increment file name: entry-1.md entry-2.md, etc
