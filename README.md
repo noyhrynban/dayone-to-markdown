@@ -3,10 +3,10 @@
 Convert the JSON export from Day One into directories of Markdown entries with photos and audio files.
 
 ### Entries
-Entries are organized by date: YYYY/MM/DD with entries being named entry.md, entry2.md, etc to account for multiple entries on the same day.
+Entries are organized by date: **YYYY/MM/DD** with entries being named entry.md, entry2.md, etc to account for multiple entries on the same day.
 
 ### Media files
-Photos and audio files are saved next to the entries to which they belong. In the export from Day One, photos are saved as photos/\<md5\>.jpeg. Audio files are similar but are audios/\<md5\>.m4a. (At least for me, all of the photos were JPEG and the audio recordings were M4A) I have kept the media file names the same in order to avoid complexity of handling multiple entries with media on the same day.
+Photos and audio files are saved next to the entries to which they belong. In the export from Day One, photos are saved as **photos/\<md5\>.jpeg**. Audio files are similar but are **audios/\<md5\>.m4a**. *(At least for me, all of the photos were JPEG and the audio recordings were M4A)* I have kept the media file names the same in order to avoid complexity of handling multiple entries with media on the same day.
 
 ## Prerequisite
 [Install Rust](https://www.rust-lang.org/tools/install).
