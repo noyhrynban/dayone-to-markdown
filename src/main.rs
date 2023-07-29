@@ -14,8 +14,6 @@ use std::{
 #[derive(Deserialize)]
 struct Journal {
     entries: Vec<Entry>,
-    // TODO: add audios. (Assume .m4a)
-    // TODO: add photos. (Assume .jpeg)
 }
 
 fn main() {
@@ -45,11 +43,9 @@ fn main() {
         Err(e) => panic!("{e}"),
     };
 
-    let new_journal_dir = Path::new("new_journal");
+    let new_journal_dir = Path::new("markdown_journal");
 
     journal.entries.par_iter().for_each(|entry| {
-        // It is probably overkill to use Rayon 😛
-        let text: String = entry.text();
         let local_datetime = entry.local_datetime();
         let entry_dir: &PathBuf = &new_journal_dir
             .join(format!("{}", local_datetime.year()))
@@ -77,7 +73,17 @@ fn main() {
                 }
             });
         }
+
+        let text: String = entry.text();
+        let mut entry_num: usize = 1;
+        let mut text_entry_path = entry_dir.join(format!("entry.md"));
+        while text_entry_path.exists() {
+            entry_num += 1; // reasonably safe assumption this won't roll over
+            text_entry_path = entry_dir.join(format!("entry{}.md", entry_num));
+        }
+        match fs::write(text_entry_path, text) {
+            Ok(_) => {}
+            Err(e) => panic!("{e}"),
+        };
     });
 }
-
-// TODO: If multiple entries on same day, increment file name: entry-1.md entry-2.md, etc

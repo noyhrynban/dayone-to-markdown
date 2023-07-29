@@ -14,7 +14,13 @@ pub struct Entry {
 
 impl Entry {
     pub fn text(&self) -> String {
-        self.text.cleanup()
+        let mut text = self.text.cleanup();
+        if let Some(photos) = &self.photos {
+            for photo in photos {
+                text = text.replace(&photo.identifier, photo.file_name().as_str())
+            }
+        }
+        text
     }
 
     pub fn local_datetime(&self) -> DateTime<Tz> {
@@ -42,7 +48,6 @@ impl Entry {
 
 trait EntryText {
     fn cleanup(&self) -> String;
-    fn replace_dayone_photo(&self) -> String;
 }
 
 impl EntryText for String {
@@ -55,22 +60,6 @@ impl EntryText for String {
             .replace(r"\+", "+")
             .replace(r"\[", "[")
             .replace(r"\]", "]")
-    }
-
-    fn replace_dayone_photo(&self) -> String {
-        // TODO implementation to be done after copy the files is working
-        /*
-        replace
-        ![](dayone-moment://CF3AECB79C3247E8B9D7A7F86ACCC76E)
-        with
-        ![](image://CF3AECB79C3247E8B9D7A7F86ACCC76E.jpeg)
-
-        In the entry there is a list of audios and or photos.
-        Each audio/photo in that list has 'identifier' that matches what is in the dayone-moment.
-        the value of 'md5' for the audio/photo entry is the body of the file name
-        -> journal/audios/<md5>.m4a
-        -> journal/photos/<md5>.jpeg
-         */
-        self.to_string()
+            .replace(r"dayone-moment://", "")
     }
 }
