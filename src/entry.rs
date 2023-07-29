@@ -1,3 +1,4 @@
+use crate::audio::Audio;
 use crate::photo::Photo;
 use chrono::{DateTime, FixedOffset};
 use chrono_tz::Tz;
@@ -8,6 +9,7 @@ use serde::Deserialize;
 pub struct Entry {
     text: String,
     creation_date: String,
+    pub audios: Option<Vec<Audio>>,
     pub photos: Option<Vec<Photo>>,
     time_zone: Option<String>,
 }
@@ -18,6 +20,11 @@ impl Entry {
         if let Some(photos) = &self.photos {
             for photo in photos {
                 text = text.replace(&photo.identifier, photo.file_name().as_str())
+            }
+        }
+        if let Some(audios) = &self.audios {
+            for audio in audios {
+                text = text.replace(&audio.identifier, audio.file_name().as_str())
             }
         }
         text
@@ -61,5 +68,6 @@ impl EntryText for String {
             .replace(r"\[", "[")
             .replace(r"\]", "]")
             .replace(r"dayone-moment://", "")
+            .replace(r"dayone-moment:/audio/", "")
     }
 }

@@ -1,3 +1,4 @@
+mod audio;
 mod entry;
 mod photo;
 
@@ -57,6 +58,23 @@ fn main() {
             Err(e) => panic!("{e}"),
         }
 
+        if let Some(audios) = &entry.audios {
+            audios.par_iter().for_each(|audio| {
+                let audio_path = journal_dir.join("audios").join(audio.file_name());
+                if !audio_path.exists() {
+                    println!(
+                        "File for audio in entry is missing: {}",
+                        audio_path.to_string_lossy()
+                    );
+                } else {
+                    match fs::copy(audio_path, entry_dir.join(audio.file_name())) {
+                        Ok(_) => {}
+                        Err(e) => panic!("{e}"),
+                    };
+                }
+            });
+        }
+
         if let Some(photos) = &entry.photos {
             photos.par_iter().for_each(|photo| {
                 let photo_path = journal_dir.join("photos").join(photo.file_name());
@@ -76,7 +94,7 @@ fn main() {
 
         let text: String = entry.text();
         let mut entry_num: usize = 1;
-        let mut text_entry_path = entry_dir.join(format!("entry.md"));
+        let mut text_entry_path = entry_dir.join("entry.md");
         while text_entry_path.exists() {
             entry_num += 1; // reasonably safe assumption this won't roll over
             text_entry_path = entry_dir.join(format!("entry{}.md", entry_num));
