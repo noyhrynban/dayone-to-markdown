@@ -1,5 +1,4 @@
-use chrono::{DateTime, Datelike, FixedOffset};
-use chrono_tz::Tz;
+use rayon::prelude::*;
 use serde::Deserialize;
 use std::{
     fs::{self},
@@ -51,27 +50,7 @@ fn main() {
 
     let new_journal_dir = Path::new("new_journal");
 
-    for entry in journal.entries {
-        let text: String = cleanup(entry.text);
-        let date: DateTime<FixedOffset> = match DateTime::parse_from_rfc3339(&entry.creationDate) {
-            Ok(dt) => dt,
-            Err(e) => panic!("{e}"),
-        };
-        let timezone = match entry.timeZone {
-            Some(timezone) => timezone,
-            None => {
-                println!("{}", text);
-                panic!();
-            }
-        };
-        let tz: Tz = match timezone.parse() {
-            Ok(tz) => tz,
-            Err(e) => {
-                println!("{text}");
-                panic!("{e}")
-            }
-        };
-        let local_datetime = date.with_timezone(&tz);
+    journal.entries.par_iter().for_each(|entry| { // It is probably overkill to use Rayon 😛
 
         fs::create_dir_all(
             new_journal_dir
