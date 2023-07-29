@@ -1,4 +1,5 @@
 mod entry;
+mod photo;
 
 use chrono::Datelike;
 use entry::Entry;
@@ -6,7 +7,7 @@ use rayon::prelude::*;
 use serde::Deserialize;
 use std::{
     fs::{self},
-    path::Path,
+    path::{Path, PathBuf},
     process::exit,
 };
 
@@ -46,18 +47,35 @@ fn main() {
 
     let new_journal_dir = Path::new("new_journal");
 
-    journal.entries.par_iter().for_each(|entry| { // It is probably overkill to use Rayon 😛
+    journal.entries.par_iter().for_each(|entry| {
+        // It is probably overkill to use Rayon 😛
         let text: String = entry.text();
         let local_datetime = entry.local_datetime();
+        let entry_dir: &PathBuf = &new_journal_dir
+            .join(format!("{}", local_datetime.year()))
+            .join(format!("{:02}", local_datetime.month()))
+            .join(format!("{:02}", local_datetime.day()));
 
-        match fs::create_dir_all(
-            new_journal_dir
-                .join(format!("{}", local_datetime.year()))
-                .join(format!("{:02}", local_datetime.month()))
-                .join(format!("{:02}", local_datetime.day())),
-        ) {
+        match fs::create_dir_all(entry_dir) {
             Ok(_) => {}
             Err(e) => panic!("{e}"),
+        }
+
+        if let Some(photos) = &entry.photos {
+            photos.par_iter().for_each(|photo| {
+                let photo_path = journal_dir.join("photos").join(photo.file_name());
+                if !photo_path.exists() {
+                    println!(
+                        "File for photo in entry is missing: {}",
+                        photo_path.to_string_lossy()
+                    );
+                } else {
+                    match fs::copy(photo_path, entry_dir.join(photo.file_name())) {
+                        Ok(_) => {}
+                        Err(e) => panic!("{e}"),
+                    };
+                }
+            });
         }
     });
 }

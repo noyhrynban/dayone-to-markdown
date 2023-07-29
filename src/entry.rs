@@ -1,13 +1,15 @@
+use crate::photo::Photo;
 use chrono::{DateTime, FixedOffset};
 use chrono_tz::Tz;
 use serde::Deserialize;
 
-#[allow(non_snake_case)]
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Entry {
     text: String,
-    creationDate: String,
-    timeZone: Option<String>,
+    creation_date: String,
+    pub photos: Option<Vec<Photo>>,
+    time_zone: Option<String>,
 }
 
 impl Entry {
@@ -16,11 +18,11 @@ impl Entry {
     }
 
     pub fn local_datetime(&self) -> DateTime<Tz> {
-        let date: DateTime<FixedOffset> = match DateTime::parse_from_rfc3339(&self.creationDate) {
+        let date: DateTime<FixedOffset> = match DateTime::parse_from_rfc3339(&self.creation_date) {
             Ok(dt) => dt,
             Err(e) => panic!("{e}"),
         };
-        let timezone = match &self.timeZone {
+        let timezone = match &self.time_zone {
             Some(timezone) => timezone,
             None => {
                 println!("{}", self.text);
@@ -56,6 +58,7 @@ impl EntryText for String {
     }
 
     fn replace_dayone_photo(&self) -> String {
+        // TODO implementation to be done after copy the files is working
         /*
         replace
         ![](dayone-moment://CF3AECB79C3247E8B9D7A7F86ACCC76E)
